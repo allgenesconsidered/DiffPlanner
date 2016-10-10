@@ -27,6 +27,7 @@ public class DropdownOnItemClickListener implements OnItemClickListener {
 
         // get the text and set it as the button text
         String selectedItemText = ((TextView) v).getText().toString();
+        mainActivity.mProtocol = selectedItemText;
         mainActivity.buttonShowDropDown.setText(selectedItemText);
 
 

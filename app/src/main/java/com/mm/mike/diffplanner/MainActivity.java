@@ -10,6 +10,8 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -18,10 +20,12 @@ import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.TimePicker;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -31,13 +35,18 @@ public class MainActivity extends AppCompatActivity {
 
     String popUpContents[];
     PopupWindow popupWindowProtocols;
+    EditText mEditTextTitle;
     Button buttonShowDropDown;
     Button buttonDate;
     Button buttonTime;
+    Button buttonCreatePlanner;
 
     private Calendar calendar;
-    private int year, month, day;
-    private int hour, minute;
+    int mYear, mMonth, mDay;
+    int mHour, mMinute;
+    String mProtocol;
+    String mTitle;
+
 
 
     @Override
@@ -52,9 +61,9 @@ public class MainActivity extends AppCompatActivity {
         // add items on the array dynamically
         // format is ProtocolName::ID
         List<String> protocolList = new ArrayList<String>();
-        protocolList.add("Cardiac v1.0::1");
-        protocolList.add("Cardiac v1.2::2");
-        protocolList.add("Cardiac v1.4::4");
+        protocolList.add("Cardiac::v1.0::1");
+        protocolList.add("Cardiac::v1.2::2");
+        protocolList.add("Cardiac::v1.4::4");
 
         // convert to simple array
         popUpContents = new String[protocolList.size()];
@@ -78,9 +87,31 @@ public class MainActivity extends AppCompatActivity {
                     case R.id.buttonTime:
                         showDialog(1);
                         break;
+                    case R.id.buttonCreatePlanner:
+                        int duration = Toast.LENGTH_LONG;
+                        String text =  new StringBuilder().append(mTitle).append(" - ")
+                                .append(mMonth).append("/").append(mDay).append("/").append(mYear)
+                                .append(" ").append(mHour).append(":").append(formatMinute(mMinute)).append(" ").append(mProtocol).toString();
+                        Toast toast = Toast.makeText(getApplicationContext(), text, duration);
+                        toast.show();
+                        break;
                 }
             }
         };
+
+        mEditTextTitle = (EditText) findViewById(R.id.editTextName);
+        mEditTextTitle.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                mTitle = s.toString();
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
 
         // our button
         buttonShowDropDown = (Button) findViewById(R.id.buttonShowDropDown);
@@ -91,17 +122,22 @@ public class MainActivity extends AppCompatActivity {
         buttonDate.setOnClickListener(handler);
 
         calendar = Calendar.getInstance();
-        year = calendar.get(Calendar.YEAR);
-        month = calendar.get(Calendar.MONTH);
-        day = calendar.get(Calendar.DAY_OF_MONTH);
+        mYear = calendar.get(Calendar.YEAR);
+        mMonth = calendar.get(Calendar.MONTH);
+        mDay = calendar.get(Calendar.DAY_OF_MONTH);
 
         //Time Picker
         buttonTime = (Button) findViewById(R.id.buttonTime);
         buttonTime.setOnClickListener(handler);
 
-        hour = calendar.get(Calendar.HOUR_OF_DAY);
-        minute = calendar.get(Calendar.MINUTE);
+        mHour = calendar.get(Calendar.HOUR_OF_DAY);
+        mMinute = calendar.get(Calendar.MINUTE);
 
+        mProtocol = "None";
+
+        // Execute
+        buttonCreatePlanner = (Button) findViewById(R.id.buttonCreatePlanner);
+        buttonCreatePlanner.setOnClickListener(handler);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -141,13 +177,14 @@ public class MainActivity extends AppCompatActivity {
                 // setting the ID and text for every items in the list
                 String item = getItem(position);
                 String[] itemArr = item.split("::");
-                String text = itemArr[0];
-                String id = itemArr[1];
+                String text0 = itemArr[0];
+                String text1 = itemArr[1];
+                String id = itemArr[2];
 
                 // visual settings for the list item
                 TextView listItem = new TextView(MainActivity.this);
 
-                listItem.setText(text);
+                listItem.setText(new StringBuilder().append(text0).append(" ").append(text1));
                 listItem.setTag(id);
                 listItem.setTextSize(22);
                 listItem.setPadding(10, 10, 10, 10);
@@ -160,12 +197,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     protected Dialog onCreateDialog(int id) {
-        if (id == 0) {
-            return new DatePickerDialog(this, mDateListener, year, month, day);
+        if (id == 0) { // Date picker
+            return new DatePickerDialog(this, mDateListener, mYear, mMonth, mDay);
         }
-        if (id == 1){
-            return new TimePickerDialog(this, mTimeSetListener, hour, minute, true);
+        if (id == 1){ // Time picker
+            return new TimePickerDialog(this, mTimeSetListener, mHour, mMinute, true);
         }
         return null;
     }
@@ -173,8 +211,8 @@ public class MainActivity extends AppCompatActivity {
     private DatePickerDialog.OnDateSetListener mDateListener =
             new DatePickerDialog.OnDateSetListener() {
                 @Override
-                public void onDateSet(DatePicker arg0, int arg1, int arg2, int arg3) {
-                    updateDate(arg1, arg2+1, arg3);
+                public void onDateSet(DatePicker view, int year, int month, int day) {
+                    updateDate(year, month+1, day);
             }
         };
 
@@ -186,11 +224,25 @@ public class MainActivity extends AppCompatActivity {
             };
 
     private void updateDate(int year, int month, int day) {
+        mYear = year;
+        mMonth = month;
+        mDay = day;
         buttonDate.setText(new StringBuilder().append(month).append("/")
                 .append(day).append("/").append(year));
     }
     private void updateTime(int hour, int minute) {
+        mHour = hour;
+        mMinute = minute;
         buttonTime.setText(new StringBuilder().append(hour).append(":")
-                .append(minute));
+                .append(formatMinute(minute)));
+    }
+
+    private String formatMinute(int minute){
+        String minuteString;
+        if(minute < 10){
+            minuteString = new StringBuilder().append("0").append(minute).toString();
+        }
+        else minuteString = Integer.toString(minute);
+        return minuteString;
     }
 }
