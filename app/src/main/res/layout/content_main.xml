@@ -63,6 +63,7 @@
                 android:id="@+id/buttonDate"
                 android:layout_weight="1"
                 style="@style/Widget.AppCompat.Button.Borderless.Colored"
+                android:onClick="setDate"
                 android:textAllCaps="false"
                 android:textSize="18sp"/>
 

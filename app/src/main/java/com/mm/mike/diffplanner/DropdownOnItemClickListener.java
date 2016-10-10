@@ -10,8 +10,6 @@ package com.mm.mike.diffplanner;
 
 public class DropdownOnItemClickListener implements OnItemClickListener {
 
-    String TAG = "DogsDropdownOnItemClickListener.java";
-
     @Override
     public void onItemClick(AdapterView<?> arg0, View v, int arg2, long arg3) {
 

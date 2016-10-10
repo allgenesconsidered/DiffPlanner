@@ -1,7 +1,11 @@
 package com.mm.mike.diffplanner;
 
+import android.app.DatePickerDialog;
+import android.app.Dialog;
+import android.app.TimePickerDialog;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.provider.CalendarContract;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -13,23 +17,31 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.ListView;
 import android.widget.PopupWindow;
 import android.widget.TextView;
+import android.widget.TimePicker;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-
-    String TAG = "MainActivity.java";
-
     String popUpContents[];
     PopupWindow popupWindowProtocols;
     Button buttonShowDropDown;
+    Button buttonDate;
+    Button buttonTime;
+
+    private Calendar calendar;
+    private int year, month, day;
+    private int hour, minute;
+
 
     @Override
+    @SuppressWarnings("deprecation")
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
@@ -51,15 +63,20 @@ public class MainActivity extends AppCompatActivity {
         // initialize pop up window
         popupWindowProtocols = popupWindowProtocols();
 
+
         // button on click listener
         View.OnClickListener handler = new View.OnClickListener() {
             public void onClick(View v) {
-
                 switch (v.getId()) {
-
                     case R.id.buttonShowDropDown:
                         // show the list view as dropdown
                         popupWindowProtocols.showAsDropDown(v, -5, 0);
+                        break;
+                    case R.id.buttonDate:
+                        showDialog(0);
+                        break;
+                    case R.id.buttonTime:
+                        showDialog(1);
                         break;
                 }
             }
@@ -68,6 +85,23 @@ public class MainActivity extends AppCompatActivity {
         // our button
         buttonShowDropDown = (Button) findViewById(R.id.buttonShowDropDown);
         buttonShowDropDown.setOnClickListener(handler);
+
+        //Date Picker
+        buttonDate = (Button) findViewById(R.id.buttonDate);
+        buttonDate.setOnClickListener(handler);
+
+        calendar = Calendar.getInstance();
+        year = calendar.get(Calendar.YEAR);
+        month = calendar.get(Calendar.MONTH);
+        day = calendar.get(Calendar.DAY_OF_MONTH);
+
+        //Time Picker
+        buttonTime = (Button) findViewById(R.id.buttonTime);
+        buttonTime.setOnClickListener(handler);
+
+        hour = calendar.get(Calendar.HOUR_OF_DAY);
+        minute = calendar.get(Calendar.MINUTE);
+
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -123,5 +157,40 @@ public class MainActivity extends AppCompatActivity {
             }
         };
         return adapter;
+    }
+
+    @Override
+    protected Dialog onCreateDialog(int id) {
+        if (id == 0) {
+            return new DatePickerDialog(this, mDateListener, year, month, day);
+        }
+        if (id == 1){
+            return new TimePickerDialog(this, mTimeSetListener, hour, minute, true);
+        }
+        return null;
+    }
+
+    private DatePickerDialog.OnDateSetListener mDateListener =
+            new DatePickerDialog.OnDateSetListener() {
+                @Override
+                public void onDateSet(DatePicker arg0, int arg1, int arg2, int arg3) {
+                    updateDate(arg1, arg2+1, arg3);
+            }
+        };
+
+    private TimePickerDialog.OnTimeSetListener mTimeSetListener =
+            new TimePickerDialog.OnTimeSetListener() {
+                public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                    updateTime(hourOfDay, minute);
+                }
+            };
+
+    private void updateDate(int year, int month, int day) {
+        buttonDate.setText(new StringBuilder().append(month).append("/")
+                .append(day).append("/").append(year));
+    }
+    private void updateTime(int hour, int minute) {
+        buttonTime.setText(new StringBuilder().append(hour).append(":")
+                .append(minute));
     }
 }
